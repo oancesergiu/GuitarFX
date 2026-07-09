@@ -15,7 +15,15 @@ from config import (
 from effects.noise_gate import noise_gate
 from effects.distortion import soft_clip
 from effects.delay import Delay
+from effects.eq import ThreeBandEQ
 
+
+eq = ThreeBandEQ(
+    sample_rate=RATE,
+    bass_gain=1.2,
+    mid_gain=1.0,
+    treble_gain=0.8
+)
 
 delay = Delay(
     sample_rate=RATE,
@@ -37,6 +45,8 @@ def process(guitar):
         drive=DISTORTION_DRIVE,
         level=DISTORTION_LEVEL
     )
+
+    guitar = eq.process(guitar)
 
     guitar = delay.process(guitar)
 
