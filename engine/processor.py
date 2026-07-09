@@ -1,5 +1,10 @@
 import numpy as np
-
+from config import (
+    ...
+    BASS_DB,
+    MID_DB,
+    TREBLE_DB,
+)
 from config import (
     RATE,
     NOISE_GATE_THRESHOLD,
@@ -20,9 +25,9 @@ from effects.eq import ThreeBandEQ
 
 eq = ThreeBandEQ(
     sample_rate=RATE,
-    bass_gain=1.2,
-    mid_gain=1.0,
-    treble_gain=0.8
+    bass_db=BASS_DB,
+    mid_db=MID_DB,
+    treble_db=TREBLE_DB,
 )
 
 delay = Delay(
