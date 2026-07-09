@@ -1,7 +1,15 @@
 import numpy as np
 
-def soft_clip(signal, gain=4.0, drive=18000.0, level=28000.0):
+def soft_clip(signal, gain=3.5, drive=16000.0, level=22000.0):
     signal = signal.astype(np.float32)
-    signal *= gain
-    signal = np.tanh(signal / drive) * level
+
+    # Drive stage
+    signal = signal * gain
+
+    # Smooth saturation
+    signal = np.tanh(signal / drive)
+
+    # Output level
+    signal = signal * level
+
     return signal.astype(np.int16)
