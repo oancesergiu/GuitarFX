@@ -50,12 +50,11 @@ delay = Delay(
 
 auto_wah = AutoWah(
     sample_rate=RATE,
-    min_frequency=400.0,
+    min_frequency=350.0,
     max_frequency=2200.0,
-    rate_hz=1.5,
-    resonance_q=3.0,
-    boost_db=12.0,
-    mix=0.7,
+    rate_hz=1.2,
+    resonance_q=4.0,
+    mix=0.75,
 )
 
 rack.add(gate)

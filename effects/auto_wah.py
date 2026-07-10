@@ -2,36 +2,29 @@ import math
 import numpy as np
 
 from engine.dsp.biquad import Biquad
-from engine.dsp.cookbook import peaking_eq
+from engine.dsp.cookbook import band_pass
 
 
 class AutoWah:
     def __init__(
         self,
         sample_rate=44100,
-        min_frequency=400.0,
+        min_frequency=350.0,
         max_frequency=2200.0,
-        rate_hz=1.5,
-        resonance_q=3.0,
-        boost_db=12.0,
-        mix=0.7,
+        rate_hz=1.2,
+        resonance_q=4.0,
+        mix=0.75,
     ):
         self.sample_rate = float(sample_rate)
-
         self.min_frequency = float(min_frequency)
         self.max_frequency = float(max_frequency)
-
         self.rate_hz = float(rate_hz)
         self.resonance_q = float(resonance_q)
-        self.boost_db = float(boost_db)
-
         self.mix = float(np.clip(mix, 0.0, 1.0))
 
         self.phase = 0.0
-
         self.filter = Biquad()
 
-        # Update filter every N samples instead of every sample
         self.update_interval = 32
         self.sample_counter = 0
 
@@ -45,10 +38,9 @@ class AutoWah:
             + lfo * (self.max_frequency - self.min_frequency)
         )
 
-        coefficients = peaking_eq(
+        coefficients = band_pass(
             fc=center_frequency,
             fs=self.sample_rate,
-            gain_db=self.boost_db,
             q=self.resonance_q,
         )
 
@@ -59,7 +51,6 @@ class AutoWah:
         output = np.zeros_like(signal)
 
         for i, sample in enumerate(signal):
-
             if self.sample_counter % self.update_interval == 0:
                 self._update_filter()
 
@@ -93,6 +84,3 @@ class AutoWah:
 
     def set_resonance(self, q):
         self.resonance_q = float(q)
-
-    def set_boost(self, boost_db):
-        self.boost_db = float(boost_db)

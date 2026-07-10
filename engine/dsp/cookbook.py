@@ -81,3 +81,30 @@ def high_shelf(fc, fs, gain_db, q=0.707):
         a1 / a0,
         a2 / a0,
     )
+
+
+def band_pass(fc, fs, q=2.0):
+    """
+    Second-order resonant band-pass filter.
+    """
+    omega = 2.0 * math.pi * fc / fs
+    sin_omega = math.sin(omega)
+    cos_omega = math.cos(omega)
+
+    alpha = sin_omega / (2.0 * q)
+
+    b0 = alpha
+    b1 = 0.0
+    b2 = -alpha
+
+    a0 = 1.0 + alpha
+    a1 = -2.0 * cos_omega
+    a2 = 1.0 - alpha
+
+    return (
+        b0 / a0,
+        b1 / a0,
+        b2 / a0,
+        a1 / a0,
+        a2 / a0,
+    )
