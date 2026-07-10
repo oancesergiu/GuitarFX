@@ -19,6 +19,7 @@ from effects.gate import NoiseGate
 from effects.overdrive import Overdrive
 from effects.eq import ThreeBandEQ
 from effects.delay import Delay
+from effects.auto_wah import AutoWah
 
 
 rack = EffectRack()
@@ -47,15 +48,27 @@ delay = Delay(
     mix=DELAY_MIX,
 )
 
+auto_wah = AutoWah(
+    sample_rate=RATE,
+    min_frequency=400.0,
+    max_frequency=2200.0,
+    rate_hz=1.5,
+    resonance_q=3.0,
+    boost_db=12.0,
+    mix=0.7,
+)
+
 rack.add(gate)
 rack.add(overdrive)
 rack.add(eq)
+rack.add(auto_wah)
 rack.add(delay)
 
 effects = {
     "gate": gate,
     "overdrive": overdrive,
     "eq": eq,
+    "auto_wah": auto_wah,
     "delay": delay,
 }
 
@@ -68,6 +81,7 @@ presets = PresetManager(
 print("Available presets:", presets.available_presets())
 
 presets.load("lead")
+rack.enable(auto_wah)
 
 
 def process(guitar):

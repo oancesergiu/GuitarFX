@@ -7,11 +7,11 @@ class Biquad:
         self.reset()
 
     def set_coefficients(self, b0, b1, b2, a1, a2):
-        self.b0 = b0
-        self.b1 = b1
-        self.b2 = b2
-        self.a1 = a1
-        self.a2 = a2
+        self.b0 = float(b0)
+        self.b1 = float(b1)
+        self.b2 = float(b2)
+        self.a1 = float(a1)
+        self.a2 = float(a2)
 
     def reset(self):
         self.x1 = 0.0
@@ -19,24 +19,27 @@ class Biquad:
         self.y1 = 0.0
         self.y2 = 0.0
 
+    def process_sample(self, x):
+        y = (
+            self.b0 * x
+            + self.b1 * self.x1
+            + self.b2 * self.x2
+            - self.a1 * self.y1
+            - self.a2 * self.y2
+        )
+
+        self.x2 = self.x1
+        self.x1 = x
+        self.y2 = self.y1
+        self.y1 = y
+
+        return y
+
     def process(self, signal):
         signal = signal.astype(np.float32)
         output = np.zeros_like(signal)
 
-        for i, x in enumerate(signal):
-            y = (
-                self.b0 * x
-                + self.b1 * self.x1
-                + self.b2 * self.x2
-                - self.a1 * self.y1
-                - self.a2 * self.y2
-            )
-
-            self.x2 = self.x1
-            self.x1 = x
-            self.y2 = self.y1
-            self.y1 = y
-
-            output[i] = y
+        for i, sample in enumerate(signal):
+            output[i] = self.process_sample(sample)
 
         return output
