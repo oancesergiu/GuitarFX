@@ -1,0 +1,26 @@
+{
+  "name": "Clean",
+  "effects": {
+    "gate": {
+      "enabled": true
+    },
+    "overdrive": {
+      "enabled": false,
+      "gain": 3.5,
+      "drive": 16000.0,
+      "level": 22000.0
+    },
+    "eq": {
+      "enabled": true,
+      "bass_db": 2.0,
+      "mid_db": 0.0,
+      "treble_db": 1.0
+    },
+    "delay": {
+      "enabled": false,
+      "delay_ms": 350,
+      "feedback": 0.35,
+      "mix": 0.30
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Lead",
+  "effects": {
+    "gate": {
+      "enabled": true
+    },
+    "overdrive": {
+      "enabled": true,
+      "gain": 6.0,
+      "drive": 12000.0,
+      "level": 23000.0
+    },
+    "eq": {
+      "enabled": true,
+      "bass_db": 1.0,
+      "mid_db": 4.0,
+      "treble_db": 1.0
+    },
+    "delay": {
+      "enabled": true,
+      "delay_ms": 350,
+      "feedback": 0.35,
+      "mix": 0.30
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Blues",
+  "effects": {
+    "gate": {
+      "enabled": true
+    },
+    "overdrive": {
+      "enabled": true,
+      "gain": 2.8,
+      "drive": 17000.0,
+      "level": 22000.0
+    },
+    "eq": {
+      "enabled": true,
+      "bass_db": 3.0,
+      "mid_db": 2.0,
+      "treble_db": -2.0
+    },
+    "delay": {
+      "enabled": true,
+      "delay_ms": 180,
+      "feedback": 0.15,
+      "mix": 0.10
+    }
+  }
+}

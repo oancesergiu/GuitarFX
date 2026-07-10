@@ -1,0 +1,26 @@
+{
+  "name": "Metal",
+  "effects": {
+    "gate": {
+      "enabled": true
+    },
+    "overdrive": {
+      "enabled": true,
+      "gain": 8.0,
+      "drive": 10000.0,
+      "level": 24000.0
+    },
+    "eq": {
+      "enabled": true,
+      "bass_db": 5.0,
+      "mid_db": -4.0,
+      "treble_db": 3.0
+    },
+    "delay": {
+      "enabled": false,
+      "delay_ms": 200,
+      "feedback": 0.20,
+      "mix": 0.10
+    }
+  }
+}

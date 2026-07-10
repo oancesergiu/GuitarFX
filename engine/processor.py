@@ -62,9 +62,12 @@ effects = {
 presets = PresetManager(
     rack=rack,
     effects=effects,
+    presets_dir="presets",
 )
 
-presets.load("clean")
+print("Available presets:", presets.available_presets())
+
+presets.load("lead")
 
 
 def process(guitar):

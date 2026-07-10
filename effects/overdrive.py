@@ -7,6 +7,15 @@ class Overdrive:
         self.drive = drive
         self.level = level
 
+    def set_gain(self, gain):
+        self.gain = float(gain)
+
+    def set_drive(self, drive):
+        self.drive = float(drive)
+
+    def set_level(self, level):
+        self.level = float(level)
+
     def process(self, signal):
         return soft_clip(
             signal,
