@@ -13,6 +13,7 @@ from config import (
 )
 
 from engine.effect_rack import EffectRack
+from engine.preset_manager import PresetManager
 
 from effects.gate import NoiseGate
 from effects.overdrive import Overdrive
@@ -22,23 +23,21 @@ from effects.delay import Delay
 
 rack = EffectRack()
 
-rack.add(NoiseGate(threshold=NOISE_GATE_THRESHOLD))
-
-rack.add(
-    Overdrive(
-        gain=DISTORTION_GAIN,
-        drive=DISTORTION_DRIVE,
-        level=DISTORTION_LEVEL,
-    )
+gate = NoiseGate(
+    threshold=NOISE_GATE_THRESHOLD
 )
 
-rack.add(
-    ThreeBandEQ(
-        sample_rate=RATE,
-        bass_db=BASS_DB,
-        mid_db=MID_DB,
-        treble_db=TREBLE_DB,
-    )
+overdrive = Overdrive(
+    gain=DISTORTION_GAIN,
+    drive=DISTORTION_DRIVE,
+    level=DISTORTION_LEVEL,
+)
+
+eq = ThreeBandEQ(
+    sample_rate=RATE,
+    bass_db=BASS_DB,
+    mid_db=MID_DB,
+    treble_db=TREBLE_DB,
 )
 
 delay = Delay(
@@ -48,9 +47,24 @@ delay = Delay(
     mix=DELAY_MIX,
 )
 
+rack.add(gate)
+rack.add(overdrive)
+rack.add(eq)
 rack.add(delay)
-#rack.disable(delay)
 
+effects = {
+    "gate": gate,
+    "overdrive": overdrive,
+    "eq": eq,
+    "delay": delay,
+}
+
+presets = PresetManager(
+    rack=rack,
+    effects=effects,
+)
+
+presets.load("clean")
 
 
 def process(guitar):
