@@ -14,7 +14,7 @@ from config import (
 
 from engine.effect_rack import EffectRack
 from engine.preset_manager import PresetManager
-
+from effects.cabinet import Cabinet
 from effects.gate import NoiseGate
 from effects.overdrive import Overdrive
 from effects.eq import ThreeBandEQ
@@ -57,10 +57,18 @@ auto_wah = AutoWah(
     mix=0.75,
 )
 
+cabinet = Cabinet(
+    ir_path="irs/celestion.wav",
+    sample_rate=RATE,
+    output_level=0.8,
+    max_ir_samples=2048,
+)
+
 rack.add(gate)
 rack.add(overdrive)
 rack.add(eq)
 rack.add(auto_wah)
+rack.add(cabinet)
 rack.add(delay)
 
 effects = {
@@ -68,6 +76,7 @@ effects = {
     "overdrive": overdrive,
     "eq": eq,
     "auto_wah": auto_wah,
+    "cabinet": cabinet,
     "delay": delay,
 }
 
@@ -79,9 +88,10 @@ presets = PresetManager(
 
 print("Available presets:", presets.available_presets())
 
-presets.load("lead")
-rack.enable(auto_wah)
 
+presets.load("rock")
+rack.enable(cabinet)
+rack.disable(cabinet)
 
 def process(guitar):
     return rack.process(guitar)
