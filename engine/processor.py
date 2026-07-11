@@ -101,7 +101,7 @@ print(
 )
 
 # Change this name to select the startup preset.
-presets.load("metal")
+presets.load("blues")
 
 
 def process(guitar):
