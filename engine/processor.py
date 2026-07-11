@@ -64,6 +64,14 @@ cabinet = Cabinet(
     max_ir_samples=2048,
 )
 
+overdrive = Overdrive(
+    gain=DISTORTION_GAIN,
+    drive=DISTORTION_DRIVE,
+    level=DISTORTION_LEVEL,
+    tone=0.55,
+    sample_rate=RATE,
+)
+
 rack.add(gate)
 rack.add(overdrive)
 rack.add(eq)
@@ -89,9 +97,9 @@ presets = PresetManager(
 print("Available presets:", presets.available_presets())
 
 
-presets.load("rock")
-rack.enable(cabinet)
-rack.disable(cabinet)
+presets.load("blues")
+
+
 
 def process(guitar):
     return rack.process(guitar)

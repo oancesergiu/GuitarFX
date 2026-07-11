@@ -9,7 +9,10 @@ class PresetManager:
         self.presets_dir = Path(presets_dir)
 
     def available_presets(self):
-        return sorted(path.stem for path in self.presets_dir.glob("*.json"))
+        return sorted(
+            path.stem
+            for path in self.presets_dir.glob("*.json")
+        )
 
     def disable_all(self):
         for effect in self.effects.values():
@@ -20,7 +23,8 @@ class PresetManager:
 
         if not preset_path.exists():
             raise FileNotFoundError(
-                f"Preset '{preset_name}' was not found in {self.presets_dir}"
+                f"Preset '{preset_name}' was not found in "
+                f"{self.presets_dir}"
             )
 
         with preset_path.open("r", encoding="utf-8") as file:
@@ -30,12 +34,34 @@ class PresetManager:
 
         settings = preset.get("effects", {})
 
-        self._configure_gate(settings.get("gate", {}))
-        self._configure_overdrive(settings.get("overdrive", {}))
-        self._configure_eq(settings.get("eq", {}))
-        self._configure_delay(settings.get("delay", {}))
+        self._configure_gate(
+            settings.get("gate", {})
+        )
 
-        print(f"Loaded preset: {preset.get('name', preset_name)}")
+        self._configure_overdrive(
+            settings.get("overdrive", {})
+        )
+
+        self._configure_eq(
+            settings.get("eq", {})
+        )
+
+        self._configure_auto_wah(
+            settings.get("auto_wah", {})
+        )
+
+        self._configure_cabinet(
+            settings.get("cabinet", {})
+        )
+
+        self._configure_delay(
+            settings.get("delay", {})
+        )
+
+        print(
+            f"Loaded preset: "
+            f"{preset.get('name', preset_name)}"
+        )
 
     def _set_enabled(self, effect_name, enabled):
         effect = self.effects[effect_name]
@@ -47,46 +73,136 @@ class PresetManager:
 
     def _configure_gate(self, settings):
         gate = self.effects["gate"]
-        self._set_enabled("gate", settings.get("enabled", False))
+
+        self._set_enabled(
+            "gate",
+            settings.get("enabled", False),
+        )
 
         if "threshold" in settings:
-            gate.threshold = float(settings["threshold"])
+            gate.threshold = float(
+                settings["threshold"]
+            )
 
     def _configure_overdrive(self, settings):
         overdrive = self.effects["overdrive"]
-        self._set_enabled("overdrive", settings.get("enabled", False))
+
+        self._set_enabled(
+            "overdrive",
+            settings.get("enabled", False),
+        )
 
         if "gain" in settings:
-            overdrive.set_gain(settings["gain"])
+            overdrive.set_gain(
+                settings["gain"]
+            )
 
         if "drive" in settings:
-            overdrive.set_drive(settings["drive"])
+            overdrive.set_drive(
+                settings["drive"]
+            )
 
         if "level" in settings:
-            overdrive.set_level(settings["level"])
+            overdrive.set_level(
+                settings["level"]
+            )
+
+        if "tone" in settings:
+            overdrive.set_tone(
+                settings["tone"]
+            )
 
     def _configure_eq(self, settings):
         eq = self.effects["eq"]
-        self._set_enabled("eq", settings.get("enabled", False))
+
+        self._set_enabled(
+            "eq",
+            settings.get("enabled", False),
+        )
 
         if "bass_db" in settings:
-            eq.set_bass(settings["bass_db"])
+            eq.set_bass(
+                settings["bass_db"]
+            )
 
         if "mid_db" in settings:
-            eq.set_mid(settings["mid_db"])
+            eq.set_mid(
+                settings["mid_db"]
+            )
 
         if "treble_db" in settings:
-            eq.set_treble(settings["treble_db"])
+            eq.set_treble(
+                settings["treble_db"]
+            )
+
+    def _configure_auto_wah(self, settings):
+        auto_wah = self.effects["auto_wah"]
+
+        self._set_enabled(
+            "auto_wah",
+            settings.get("enabled", False),
+        )
+
+        if "rate_hz" in settings:
+            auto_wah.set_rate(
+                settings["rate_hz"]
+            )
+
+        if "mix" in settings:
+            auto_wah.set_mix(
+                settings["mix"]
+            )
+
+        if (
+            "min_frequency" in settings
+            and "max_frequency" in settings
+        ):
+            auto_wah.set_frequency_range(
+                settings["min_frequency"],
+                settings["max_frequency"],
+            )
+
+        if "resonance_q" in settings:
+            auto_wah.set_resonance(
+                settings["resonance_q"]
+            )
+
+    def _configure_cabinet(self, settings):
+        cabinet = self.effects["cabinet"]
+
+        self._set_enabled(
+            "cabinet",
+            settings.get("enabled", False),
+        )
+
+        if "output_level" in settings:
+            cabinet.output_level = float(
+                settings["output_level"]
+            )
+
+        # The "ir" filename is read from JSON,
+        # but live IR switching is not implemented yet.
+        # For now the cabinet still uses irs/celestion.wav.
 
     def _configure_delay(self, settings):
         delay = self.effects["delay"]
-        self._set_enabled("delay", settings.get("enabled", False))
+
+        self._set_enabled(
+            "delay",
+            settings.get("enabled", False),
+        )
 
         if "delay_ms" in settings:
-            delay.set_delay_ms(settings["delay_ms"])
+            delay.set_delay_ms(
+                settings["delay_ms"]
+            )
 
         if "feedback" in settings:
-            delay.set_feedback(settings["feedback"])
+            delay.set_feedback(
+                settings["feedback"]
+            )
 
         if "mix" in settings:
-            delay.set_mix(settings["mix"])
+            delay.set_mix(
+                settings["mix"]
+            )

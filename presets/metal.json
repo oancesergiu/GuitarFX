@@ -21,6 +21,11 @@
       "delay_ms": 200,
       "feedback": 0.20,
       "mix": 0.10
+    },
+    "cabinet": {
+      "enabled": true,
+      "ir": "celestion.wav",
+      "output_level": 0.9
     }
   }
 }
