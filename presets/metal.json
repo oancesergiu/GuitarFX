@@ -7,8 +7,8 @@
     "overdrive": {
       "enabled": true,
       "gain": 8.0,
-      "drive": 10000.0,
-      "level": 24000.0
+      "drive": 0.30,
+      "level": 0.78
     },
     "eq": {
       "enabled": true,

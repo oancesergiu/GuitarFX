@@ -2,47 +2,68 @@ import numpy as np
 
 
 class FIRConvolver:
+    """
+    Block FIR convolution with overlap-add state.
+
+    Input and output use normalized float32 audio.
+    """
+
     def __init__(self, impulse_response):
-        ir = np.asarray(
+        impulse_response = np.asarray(
             impulse_response,
             dtype=np.float32,
-        )
+        ).flatten()
 
-        if ir.ndim != 1:
-            raise ValueError("Impulse response must be one-dimensional.")
+        if impulse_response.size == 0:
+            raise ValueError("Impulse response cannot be empty.")
 
-        peak = np.max(np.abs(ir))
+        peak = float(np.max(np.abs(impulse_response)))
 
-        if peak > 0:
-            ir /= peak
+        if peak > 0.0:
+            impulse_response = impulse_response / peak
 
-        self.ir = ir
+        self.ir = impulse_response
 
-        self.state = np.zeros(
-            len(ir) - 1,
+        self.overlap = np.zeros(
+            max(0, self.ir.size - 1),
             dtype=np.float32,
         )
 
     def reset(self):
-        self.state.fill(0.0)
+        self.overlap.fill(0.0)
 
     def process(self, signal):
-        signal = np.asarray(
-            signal,
-            dtype=np.float32,
-        )
+        signal = np.asarray(signal, dtype=np.float32)
 
-        output = np.convolve(
+        if signal.ndim != 1:
+            raise ValueError("FIRConvolver expects mono one-dimensional audio.")
+
+        convolved = np.convolve(
             signal,
             self.ir,
             mode="full",
-        )
+        ).astype(np.float32)
 
-        overlap = len(self.state)
+        overlap_length = self.overlap.size
 
-        if overlap:
-            output[:overlap] += self.state
+        if overlap_length > 0:
+            add_length = min(overlap_length, convolved.size)
 
-            self.state[:] = output[-overlap:]
+            convolved[:add_length] += self.overlap[:add_length]
 
-        return output[: len(signal)]
+        block_length = signal.size
+        output = convolved[:block_length].copy()
+
+        if overlap_length > 0:
+            new_overlap = convolved[block_length:]
+
+            self.overlap.fill(0.0)
+
+            copy_length = min(
+                new_overlap.size,
+                self.overlap.size,
+            )
+
+            self.overlap[:copy_length] = new_overlap[:copy_length]
+
+        return output

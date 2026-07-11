@@ -1,3 +1,5 @@
+import numpy as np
+
 from config import (
     RATE,
     NOISE_GATE_THRESHOLD,
@@ -14,24 +16,28 @@ from config import (
 
 from engine.effect_rack import EffectRack
 from engine.preset_manager import PresetManager
-from effects.cabinet import Cabinet
+
 from effects.gate import NoiseGate
 from effects.overdrive import Overdrive
 from effects.eq import ThreeBandEQ
-from effects.delay import Delay
 from effects.auto_wah import AutoWah
+from effects.cabinet import Cabinet
+from effects.delay import Delay
 
 
 rack = EffectRack()
 
+
 gate = NoiseGate(
-    threshold=NOISE_GATE_THRESHOLD
+    threshold=NOISE_GATE_THRESHOLD,
 )
 
 overdrive = Overdrive(
     gain=DISTORTION_GAIN,
     drive=DISTORTION_DRIVE,
     level=DISTORTION_LEVEL,
+    tone=0.55,
+    sample_rate=RATE,
 )
 
 eq = ThreeBandEQ(
@@ -39,13 +45,6 @@ eq = ThreeBandEQ(
     bass_db=BASS_DB,
     mid_db=MID_DB,
     treble_db=TREBLE_DB,
-)
-
-delay = Delay(
-    sample_rate=RATE,
-    delay_ms=DELAY_MS,
-    feedback=DELAY_FEEDBACK,
-    mix=DELAY_MIX,
 )
 
 auto_wah = AutoWah(
@@ -60,17 +59,17 @@ auto_wah = AutoWah(
 cabinet = Cabinet(
     ir_path="irs/celestion.wav",
     sample_rate=RATE,
-    output_level=0.8,
+    output_level=0.9,
     max_ir_samples=2048,
 )
 
-overdrive = Overdrive(
-    gain=DISTORTION_GAIN,
-    drive=DISTORTION_DRIVE,
-    level=DISTORTION_LEVEL,
-    tone=0.55,
+delay = Delay(
     sample_rate=RATE,
+    delay_ms=DELAY_MS,
+    feedback=DELAY_FEEDBACK,
+    mix=DELAY_MIX,
 )
+
 
 rack.add(gate)
 rack.add(overdrive)
@@ -78,6 +77,7 @@ rack.add(eq)
 rack.add(auto_wah)
 rack.add(cabinet)
 rack.add(delay)
+
 
 effects = {
     "gate": gate,
@@ -88,18 +88,26 @@ effects = {
     "delay": delay,
 }
 
+
 presets = PresetManager(
     rack=rack,
     effects=effects,
     presets_dir="presets",
 )
 
-print("Available presets:", presets.available_presets())
+print(
+    "Available presets:",
+    presets.available_presets(),
+)
 
-
-presets.load("brown")
-rack.enable(cabinet)
+# Change this name to select the startup preset.
+presets.load("metal")
 
 
 def process(guitar):
+    guitar = np.asarray(
+        guitar,
+        dtype=np.float32,
+    )
+
     return rack.process(guitar)

@@ -72,10 +72,10 @@ class ThreeBandEQ:
         self._update_filters()
 
     def process(self, signal):
-        signal = signal.astype(np.float32)
+        signal = np.asarray(signal, dtype=np.float32)
 
         signal = self.bass.process(signal)
         signal = self.mid.process(signal)
         signal = self.treble.process(signal)
 
-        return np.clip(signal, -32768, 32767).astype(np.int16)
+        return np.clip(signal, -1.0, 1.0).astype(np.float32)

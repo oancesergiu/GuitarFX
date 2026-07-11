@@ -6,8 +6,8 @@ class Overdrive:
     def __init__(
         self,
         gain=4.0,
-        drive=15000.0,
-        level=22000.0,
+        drive=0.45,
+        level=0.75,
         tone=0.55,
         sample_rate=44100,
     ):
@@ -18,7 +18,7 @@ class Overdrive:
         self.level = float(level)
         self.tone = float(np.clip(tone, 0.0, 1.0))
 
-        # Tighten the low end before clipping.
+        # Tighten low frequencies before clipping.
         self.hp_b, self.hp_a = butter(
             2,
             120.0,
@@ -27,7 +27,7 @@ class Overdrive:
         )
         self.hp_state = lfilter_zi(self.hp_b, self.hp_a) * 0.0
 
-        # Add a small mid emphasis before clipping.
+        # Mid-focused path before clipping.
         self.mid_b, self.mid_a = butter(
             2,
             [500.0, 1800.0],
@@ -53,20 +53,17 @@ class Overdrive:
         self.gain = float(np.clip(gain, 0.1, 20.0))
 
     def set_drive(self, drive):
-        self.drive = float(np.clip(drive, 1000.0, 32000.0))
+        self.drive = float(np.clip(drive, 0.03, 1.0))
 
     def set_level(self, level):
-        self.level = float(np.clip(level, 0.0, 32767.0))
+        self.level = float(np.clip(level, 0.0, 1.0))
 
     def set_tone(self, tone):
         self.tone = float(np.clip(tone, 0.0, 1.0))
         self._update_tone_filter()
 
     def process(self, signal):
-        signal = np.asarray(signal, dtype=np.float32)
-
-        # Normalize int16-style samples.
-        x = signal / 32768.0
+        x = np.asarray(signal, dtype=np.float32)
 
         # Tight high-pass.
         x, self.hp_state = lfilter(
@@ -84,29 +81,24 @@ class Overdrive:
             zi=self.mid_state,
         )
 
-        # Blend a small mid boost into the dry signal.
         x = x + 0.22 * mids
-
-        # Input gain.
         x *= self.gain
 
-        threshold = max(self.drive / 32768.0, 0.03)
-        normalized = x / threshold
+        normalized = x / self.drive
 
-        # First clipping stage: asymmetric soft clipping.
         stage1 = np.where(
             normalized >= 0.0,
             np.tanh(normalized),
             0.82 * np.tanh(normalized * 1.2),
         )
 
-        # Second clipping stage: gentler saturation.
         stage2 = np.tanh(stage1 * 1.35)
 
-        # Keep some attack and string definition.
-        shaped = 0.90 * stage2 + 0.10 * np.clip(x, -1.0, 1.0)
+        shaped = (
+            0.90 * stage2
+            + 0.10 * np.clip(x, -1.0, 1.0)
+        )
 
-        # Tone shaping after clipping.
         shaped, self.lp_state = lfilter(
             self.lp_b,
             self.lp_a,
@@ -114,11 +106,6 @@ class Overdrive:
             zi=self.lp_state,
         )
 
-        output_gain = self.level / 32767.0
-        shaped *= output_gain
+        shaped *= self.level
 
-        return np.clip(
-            shaped * 32767.0,
-            -32768,
-            32767,
-        ).astype(np.int16)
+        return np.clip(shaped, -1.0, 1.0).astype(np.float32)

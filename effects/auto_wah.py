@@ -1,4 +1,5 @@
 import math
+
 import numpy as np
 
 from engine.dsp.biquad import Biquad
@@ -38,23 +39,23 @@ class AutoWah:
             + lfo * (self.max_frequency - self.min_frequency)
         )
 
-        coefficients = band_pass(
-            fc=center_frequency,
-            fs=self.sample_rate,
-            q=self.resonance_q,
+        self.filter.set_coefficients(
+            *band_pass(
+                fc=center_frequency,
+                fs=self.sample_rate,
+                q=self.resonance_q,
+            )
         )
 
-        self.filter.set_coefficients(*coefficients)
-
     def process(self, signal):
-        signal = signal.astype(np.float32)
+        signal = np.asarray(signal, dtype=np.float32)
         output = np.zeros_like(signal)
 
         for i, sample in enumerate(signal):
             if self.sample_counter % self.update_interval == 0:
                 self._update_filter()
 
-            wet = self.filter.process_sample(sample)
+            wet = self.filter.process_sample(float(sample))
 
             output[i] = (
                 sample * (1.0 - self.mix)
@@ -70,7 +71,7 @@ class AutoWah:
 
             self.sample_counter += 1
 
-        return np.clip(output, -32768, 32767).astype(np.int16)
+        return np.clip(output, -1.0, 1.0).astype(np.float32)
 
     def set_rate(self, rate_hz):
         self.rate_hz = float(rate_hz)

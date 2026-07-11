@@ -1,4 +1,5 @@
 import subprocess
+
 import numpy as np
 
 from config import (
@@ -11,6 +12,11 @@ from config import (
 )
 
 from engine.processor import process
+
+from engine.dsp.audio_format import (
+    int16_to_float32,
+    float32_to_int16,
+)
 
 
 def run_audio():
@@ -34,45 +40,66 @@ def run_audio():
         f"--period-size={PERIOD_SIZE}",
     ]
 
-    arecord = subprocess.Popen(
+    arecord_process = subprocess.Popen(
         arecord_cmd,
         stdout=subprocess.PIPE,
         bufsize=0,
     )
 
-    aplay = subprocess.Popen(
+    aplay_process = subprocess.Popen(
         aplay_cmd,
         stdin=subprocess.PIPE,
         bufsize=0,
     )
 
-    print("Python ALSA audio engine running. Press Ctrl+C to stop.")
+    print(
+        "Float32 DSP engine running. "
+        "Press Ctrl+C to stop."
+    )
 
-    bytes_per_frame = CHANNELS * 2
+    bytes_per_sample = 2
+    bytes_per_frame = CHANNELS * bytes_per_sample
     block_bytes = BLOCK_FRAMES * bytes_per_frame
 
     try:
         while True:
-            data = arecord.stdout.read(block_bytes)
+            data = arecord_process.stdout.read(
+                block_bytes
+            )
 
             if len(data) != block_bytes:
                 continue
 
-            audio = np.frombuffer(
+            input_audio = np.frombuffer(
                 data,
                 dtype=np.int16,
             ).reshape(-1, CHANNELS)
 
-            # Guitar is connected to UM2 input 2
-            guitar = audio[:, 1].astype(np.float32)
+            # Guitar is connected to UM2 input 2.
+            guitar_int16 = input_audio[:, 1]
 
-            guitar = process(guitar)
+            # Convert once: PCM int16 -> normalized float32.
+            guitar_float = int16_to_float32(
+                guitar_int16
+            )
 
-            output = np.column_stack(
-                (guitar, guitar)
+            # Entire DSP rack now stays in float32.
+            processed_float = process(
+                guitar_float
+            )
+
+            # Convert once: normalized float32 -> PCM int16.
+            output_mono = float32_to_int16(
+                processed_float
+            )
+
+            output_stereo = np.column_stack(
+                (output_mono, output_mono)
             ).astype(np.int16)
 
-            aplay.stdin.write(output.tobytes())
+            aplay_process.stdin.write(
+                output_stereo.tobytes()
+            )
 
     except KeyboardInterrupt:
         print("\nStopping...")
@@ -80,19 +107,27 @@ def run_audio():
     finally:
         print("Closing audio devices...")
 
-        for pipe in (arecord.stdout, aplay.stdin):
+        for pipe in (
+            arecord_process.stdout,
+            aplay_process.stdin,
+        ):
             try:
                 pipe.close()
             except Exception:
                 pass
 
-        for process_handle in (arecord, aplay):
+        for child_process in (
+            arecord_process,
+            aplay_process,
+        ):
             try:
-                process_handle.terminate()
-                process_handle.wait(timeout=2)
+                child_process.terminate()
+                child_process.wait(timeout=2)
+
             except Exception:
                 try:
-                    process_handle.kill()
+                    child_process.kill()
+                    child_process.wait(timeout=1)
                 except Exception:
                     pass
 

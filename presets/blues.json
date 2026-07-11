@@ -7,8 +7,8 @@
     "overdrive": {
       "enabled": true,
       "gain": 2.8,
-      "drive": 17000.0,
-      "level": 22000.0
+      "drive": 0.55,
+      "level": 0.70
     },
     "eq": {
       "enabled": true,
@@ -21,6 +21,11 @@
       "delay_ms": 180,
       "feedback": 0.15,
       "mix": 0.10
+    },
+    "cabinet": {
+      "enabled": true,
+      "ir": "celestion.wav",
+      "output_level": 0.9
     }
   }
 }
