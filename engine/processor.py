@@ -97,8 +97,8 @@ presets = PresetManager(
 print("Available presets:", presets.available_presets())
 
 
-presets.load("blues")
-
+presets.load("brown")
+rack.enable(cabinet)
 
 
 def process(guitar):
