@@ -179,10 +179,11 @@ class PresetManager:
             cabinet.output_level = float(
                 settings["output_level"]
             )
-
-        # The "ir" filename is read from JSON,
-        # but live IR switching is not implemented yet.
-        # For now the cabinet still uses irs/celestion.wav.
+        if "ir" in settings:
+            cabinet.load_ir(
+            settings["ir"]
+        )
+        
 
     def _configure_delay(self, settings):
         delay = self.effects["delay"]

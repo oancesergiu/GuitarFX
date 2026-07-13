@@ -59,7 +59,7 @@ auto_wah = AutoWah(
 )
 
 cabinet = Cabinet(
-    ir_path="irs/celestion.wav",
+    ir_path="5150_metal.wav",
     sample_rate=RATE,
     output_level=0.9,
     max_ir_samples=2048,
@@ -141,8 +141,9 @@ print(
 
 # Change this name to select the startup preset.
 
-presets.load("clean")
-rack.enable(chorus)
+presets.load("brown")
+
+
 
 
 def process(guitar):

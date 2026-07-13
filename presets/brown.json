@@ -2,30 +2,41 @@
   "name": "Brown",
   "effects": {
     "gate": {
-      "enabled": true
+      "enabled": true,
+      "threshold": 0.006
     },
     "overdrive": {
       "enabled": true,
-      "gain": 5.5,
-      "drive": 0.40,
-      "level": 0.74
+      "gain": 3.8,
+      "drive": 0.44,
+      "level": 0.58,
+      "tone": 0.42
     },
     "eq": {
       "enabled": true,
-      "bass_db": 2.0,
-      "mid_db": 3.0,
-      "treble_db": 2.0
+      "bass_db": 1.0,
+      "mid_db": 2.5,
+      "treble_db": -1.5
+    },
+    "auto_wah": {
+      "enabled": false
+    },
+    "phaser": {
+      "enabled": false
+    },
+    "chorus": {
+      "enabled": false
+    },
+    "cabinet": {
+      "enabled": true,
+      "ir": "Marshall_jcm800.wav",
+      "output_level": 0.65
     },
     "delay": {
       "enabled": true,
       "delay_ms": 280,
-      "feedback": 0.25,
-      "mix": 0.18
-    },
-    "cabinet": {
-      "enabled": true,
-      "ir": "celestion.wav",
-      "output_level": 0.9
+      "feedback": 0.20,
+      "mix": 0.12
     }
   }
 }
