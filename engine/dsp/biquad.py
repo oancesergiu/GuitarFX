@@ -1,9 +1,13 @@
 import numpy as np
+from scipy.signal import lfilter
 
 
 class Biquad:
     """
-    Stateful second-order IIR filter operating entirely on float32 audio.
+    Stateful second-order IIR filter for normalized float32 audio.
+
+    Block processing uses SciPy's compiled lfilter implementation.
+    Sample processing uses the equivalent transposed Direct Form II.
     """
 
     def __init__(
@@ -24,36 +28,49 @@ class Biquad:
         self.a1 = float(a1)
         self.a2 = float(a2)
 
+        self.b = np.array(
+            [self.b0, self.b1, self.b2],
+            dtype=np.float64,
+        )
+
+        self.a = np.array(
+            [1.0, self.a1, self.a2],
+            dtype=np.float64,
+        )
+
     def reset(self):
-        self.x1 = 0.0
-        self.x2 = 0.0
-        self.y1 = 0.0
-        self.y2 = 0.0
+        # Transposed Direct Form II filter state.
+        self.state = np.zeros(2, dtype=np.float64)
 
     def process_sample(self, sample):
         x = float(sample)
 
-        y = (
-            self.b0 * x
-            + self.b1 * self.x1
-            + self.b2 * self.x2
-            - self.a1 * self.y1
-            - self.a2 * self.y2
+        y = self.b0 * x + self.state[0]
+
+        new_state_0 = (
+            self.b1 * x
+            - self.a1 * y
+            + self.state[1]
         )
 
-        self.x2 = self.x1
-        self.x1 = x
+        new_state_1 = (
+            self.b2 * x
+            - self.a2 * y
+        )
 
-        self.y2 = self.y1
-        self.y1 = y
+        self.state[0] = new_state_0
+        self.state[1] = new_state_1
 
         return y
 
     def process(self, signal):
         signal = np.asarray(signal, dtype=np.float32)
-        output = np.empty_like(signal)
 
-        for index, sample in enumerate(signal):
-            output[index] = self.process_sample(sample)
+        output, self.state = lfilter(
+            self.b,
+            self.a,
+            signal,
+            zi=self.state,
+        )
 
-        return output
+        return output.astype(np.float32, copy=False)

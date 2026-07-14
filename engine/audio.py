@@ -11,7 +11,7 @@ from config import (
     PERIOD_SIZE,
 )
 
-from engine.processor import process
+from engine.processor import process, print_benchmark
 
 from engine.dsp.audio_format import (
     int16_to_float32,
@@ -130,5 +130,7 @@ def run_audio():
                     child_process.wait(timeout=1)
                 except Exception:
                     pass
-
+        
+        
+        print_benchmark()
         print("Done.")

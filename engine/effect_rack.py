@@ -3,12 +3,21 @@ import numpy as np
 
 class EffectRack:
     """
-    Ordered collection of float32 DSP effects.
+    Ordered collection of normalized float32 DSP effects.
+
+    Effects may implement either:
+
+        process_inplace(buffer)
+
+    or:
+
+        process(buffer) -> buffer
     """
 
-    def __init__(self):
+    def __init__(self, benchmark=None):
         self.effects = []
         self.disabled_effects = set()
+        self.benchmark = benchmark
 
     def add(self, effect):
         if effect not in self.effects:
@@ -32,24 +41,59 @@ class EffectRack:
         self.effects.clear()
         self.disabled_effects.clear()
 
+    def _process_effect(self, effect, buffer):
+        process_inplace = getattr(
+            effect,
+            "process_inplace",
+            None,
+        )
+
+        if callable(process_inplace):
+            process_inplace(buffer)
+            return buffer
+
+        result = effect.process(buffer)
+
+        result = np.asarray(
+            result,
+            dtype=np.float32,
+        )
+
+        if result is not buffer:
+            np.copyto(buffer, result)
+
+        return buffer
+
     def process(self, signal):
-        output = np.asarray(
+        buffer = np.asarray(
             signal,
             dtype=np.float32,
         )
 
+        if not buffer.flags.writeable:
+            buffer = buffer.copy()
+
         for effect in self.effects:
-            if effect not in self.disabled_effects:
-                output = effect.process(output)
+            if effect in self.disabled_effects:
+                continue
 
-                if output.dtype != np.float32:
-                    output = output.astype(
-                        np.float32,
-                        copy=False,
-                    )
+            if self.benchmark is None:
+                self._process_effect(effect, buffer)
+            else:
+                effect_name = effect.__class__.__name__
 
-        return np.clip(
-            output,
+                self.benchmark.measure(
+                    effect_name,
+                    self._process_effect,
+                    effect,
+                    buffer,
+                )
+
+        np.clip(
+            buffer,
             -1.0,
             1.0,
-        ).astype(np.float32)
+            out=buffer,
+        )
+
+        return buffer

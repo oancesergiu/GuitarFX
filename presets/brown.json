@@ -29,7 +29,7 @@
     },
     "cabinet": {
       "enabled": true,
-      "ir": "Marshall_jcm800.wav",
+      "ir": "5150_metal.wav",
       "output_level": 0.65
     },
     "delay": {

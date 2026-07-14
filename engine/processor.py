@@ -12,6 +12,7 @@ from config import (
     BASS_DB,
     MID_DB,
     TREBLE_DB,
+    BLOCK_FRAMES,
 )
 
 from engine.effect_rack import EffectRack
@@ -26,8 +27,37 @@ from effects.delay import Delay
 from effects.phaser import Phaser
 from effects.chorus import Chorus
 from engine.dsp.limiter import Limiter
+from tools.benchmark import DSPBenchmark
+from effects.compressor import Compressor
+from effects.power_amp import PowerAmp
 
-rack = EffectRack()
+power_amp = PowerAmp(
+    sample_rate=RATE,
+    drive=1.8,
+    sag=0.20,
+    resonance=0.20,
+    presence=0.15,
+    master=0.75,
+)
+
+compressor = Compressor(
+    sample_rate=RATE,
+    threshold_db=-30.0,
+    ratio=10.0,
+    attack_ms=2.0,
+    release_ms=250.0,
+    makeup_db=8.0,
+    mix=1.0,
+)
+
+benchmark = DSPBenchmark(
+    sample_rate=RATE,
+    block_size=BLOCK_FRAMES,
+)
+
+rack = EffectRack(
+    benchmark=benchmark,
+)
 
 
 gate = NoiseGate(
@@ -105,11 +135,14 @@ limiter = Limiter(
     threshold=0.92,
     release_ms=80.0,
     makeup_gain=1.0,
+    block_size=BLOCK_FRAMES,
 )
 
 rack.add(gate)
+rack.add(compressor)
 rack.add(overdrive)
 rack.add(eq)
+rack.add(power_amp)
 rack.add(auto_wah)
 rack.add(phaser)
 rack.add(chorus)
@@ -119,8 +152,10 @@ rack.add(limiter)
 
 effects = {
     "gate": gate,
+    "compressor": compressor,
     "overdrive": overdrive,
     "eq": eq,
+    "power_amp": power_amp,
     "auto_wah": auto_wah,
     "phaser": phaser,
     "cabinet": cabinet,
@@ -142,8 +177,12 @@ print(
 # Change this name to select the startup preset.
 
 presets.load("brown")
+rack.enable(power_amp)
+rack.enable(phaser)
+rack.enable(auto_wah)
 
-
+def print_benchmark():
+    benchmark.report()
 
 
 def process(guitar):

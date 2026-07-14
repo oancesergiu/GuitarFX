@@ -1,12 +1,20 @@
 import math
 
 import numpy as np
+from scipy.signal import lfilter
 
-from engine.dsp.biquad import Biquad
+from engine.dsp.lfo import LFO
 from engine.dsp.cookbook import band_pass
 
 
 class AutoWah:
+    """
+    CPU-efficient auto-wah for normalized float32 audio.
+
+    The LFO and band-pass coefficients update once per audio block.
+    The complete block is processed by scipy.signal.lfilter.
+    """
+
     def __init__(
         self,
         sample_rate=44100,
@@ -15,73 +23,153 @@ class AutoWah:
         rate_hz=1.2,
         resonance_q=4.0,
         mix=0.75,
+        waveform="sine",
     ):
         self.sample_rate = float(sample_rate)
         self.min_frequency = float(min_frequency)
         self.max_frequency = float(max_frequency)
-        self.rate_hz = float(rate_hz)
         self.resonance_q = float(resonance_q)
-        self.mix = float(np.clip(mix, 0.0, 1.0))
 
-        self.phase = 0.0
-        self.filter = Biquad()
+        self.mix = float(
+            np.clip(mix, 0.0, 1.0)
+        )
 
-        self.update_interval = 32
-        self.sample_counter = 0
+        self.lfo = LFO(
+            sample_rate=self.sample_rate,
+            rate_hz=rate_hz,
+            waveform=waveform,
+        )
 
-        self._update_filter()
+        # Biquad state: two values for a second-order filter.
+        self.filter_state = np.zeros(
+            2,
+            dtype=np.float64,
+        )
 
-    def _update_filter(self):
-        lfo = 0.5 * (1.0 + math.sin(self.phase))
+    def _advance_lfo_for_block(self, block_size):
+        lfo_value = self.lfo.next_sample()
+
+        phase_step = (
+            2.0
+            * math.pi
+            * self.lfo.rate_hz
+            / self.sample_rate
+        )
+
+        self.lfo.phase += phase_step * max(
+            0,
+            block_size - 1,
+        )
+
+        self.lfo.phase %= 2.0 * math.pi
+
+        return lfo_value
+
+    def set_rate(self, rate_hz):
+        self.lfo.set_rate(rate_hz)
+
+    def set_waveform(self, waveform):
+        self.lfo.set_waveform(waveform)
+
+    def set_mix(self, mix):
+        self.mix = float(
+            np.clip(mix, 0.0, 1.0)
+        )
+
+    def set_frequency_range(self, minimum, maximum):
+        minimum = max(20.0, float(minimum))
+        maximum = min(
+            self.sample_rate * 0.45,
+            float(maximum),
+        )
+
+        if maximum <= minimum:
+            raise ValueError(
+                "Maximum wah frequency must exceed minimum."
+            )
+
+        self.min_frequency = minimum
+        self.max_frequency = maximum
+
+    def set_resonance(self, q):
+        self.resonance_q = float(
+            np.clip(q, 0.2, 20.0)
+        )
+
+    def reset(self):
+        self.lfo.reset()
+        self.filter_state.fill(0.0)
+
+    def process_inplace(self, buffer):
+        signal = np.asarray(
+            buffer,
+            dtype=np.float32,
+        )
+
+        if signal.size == 0:
+            return
+
+        lfo_value = self._advance_lfo_for_block(
+            signal.size
+        )
+
+        # Logarithmic sweep sounds more natural than a linear one.
+        frequency_ratio = (
+            self.max_frequency
+            / self.min_frequency
+        )
 
         center_frequency = (
             self.min_frequency
-            + lfo * (self.max_frequency - self.min_frequency)
+            * (frequency_ratio ** lfo_value)
         )
 
-        self.filter.set_coefficients(
-            *band_pass(
-                fc=center_frequency,
-                fs=self.sample_rate,
-                q=self.resonance_q,
-            )
+        b0, b1, b2, a1, a2 = band_pass(
+            fc=center_frequency,
+            fs=self.sample_rate,
+            q=self.resonance_q,
+        )
+
+        numerator = np.array(
+            [b0, b1, b2],
+            dtype=np.float64,
+        )
+
+        denominator = np.array(
+            [1.0, a1, a2],
+            dtype=np.float64,
+        )
+
+        wet, self.filter_state = lfilter(
+            numerator,
+            denominator,
+            signal,
+            zi=self.filter_state,
+        )
+
+        np.multiply(
+            signal,
+            1.0 - self.mix,
+            out=buffer,
+        )
+
+        buffer += wet.astype(
+            np.float32,
+            copy=False,
+        ) * self.mix
+
+        np.clip(
+            buffer,
+            -1.0,
+            1.0,
+            out=buffer,
         )
 
     def process(self, signal):
-        signal = np.asarray(signal, dtype=np.float32)
-        output = np.zeros_like(signal)
+        output = np.asarray(
+            signal,
+            dtype=np.float32,
+        ).copy()
 
-        for i, sample in enumerate(signal):
-            if self.sample_counter % self.update_interval == 0:
-                self._update_filter()
-
-            wet = self.filter.process_sample(float(sample))
-
-            output[i] = (
-                sample * (1.0 - self.mix)
-                + wet * self.mix
-            )
-
-            self.phase += (
-                2.0 * math.pi * self.rate_hz / self.sample_rate
-            )
-
-            if self.phase >= 2.0 * math.pi:
-                self.phase -= 2.0 * math.pi
-
-            self.sample_counter += 1
-
-        return np.clip(output, -1.0, 1.0).astype(np.float32)
-
-    def set_rate(self, rate_hz):
-        self.rate_hz = float(rate_hz)
-
-    def set_mix(self, mix):
-        self.mix = float(np.clip(mix, 0.0, 1.0))
-
-    def set_frequency_range(self, minimum, maximum):
-        self.min_frequency = float(minimum)
-        self.max_frequency = float(maximum)
-
-    def set_resonance(self, q):
-        self.resonance_q = float(q)
+        self.process_inplace(output)
+        return output

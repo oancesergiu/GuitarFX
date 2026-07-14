@@ -1,12 +1,19 @@
 import math
 
 import numpy as np
+from scipy.signal import lfilter
 
-from engine.dsp.allpass import AllPassStage
 from engine.dsp.lfo import LFO
 
 
 class Phaser:
+    """
+    CPU-efficient multi-stage phaser for normalized float32 audio.
+
+    The LFO and filter coefficients update once per audio block.
+    Each all-pass stage is processed by scipy.signal.lfilter.
+    """
+
     def __init__(
         self,
         sample_rate=44100,
@@ -22,36 +29,37 @@ class Phaser:
         self.min_frequency = float(min_frequency)
         self.max_frequency = float(max_frequency)
 
+        self.stage_count = max(1, int(stages))
+
         self.feedback = float(
-            np.clip(feedback, -0.95, 0.95)
+            np.clip(feedback, -0.85, 0.85)
         )
         self.mix = float(
             np.clip(mix, 0.0, 1.0)
         )
 
         self.lfo = LFO(
-            sample_rate=sample_rate,
+            sample_rate=self.sample_rate,
             rate_hz=rate_hz,
             waveform=waveform,
         )
 
-        self.stages = [
-            AllPassStage()
-            for _ in range(max(1, int(stages)))
-        ]
-
+        # Spread the all-pass stages across different frequencies.
         self.stage_offsets = np.linspace(
-            0.65,
-            1.35,
-            len(self.stages),
-            dtype=np.float32,
+            0.60,
+            1.40,
+            self.stage_count,
+            dtype=np.float64,
         )
 
-        self.feedback_sample = 0.0
-        self.update_interval = 32
-        self.sample_counter = 0
+        # One filter-state value per first-order stage.
+        self.stage_states = [
+            np.zeros(1, dtype=np.float64)
+            for _ in range(self.stage_count)
+        ]
 
-        self._update_coefficients(0.5)
+        # Feedback is carried between blocks.
+        self.feedback_state = 0.0
 
     def _frequency_to_coefficient(self, frequency):
         frequency = float(
@@ -68,24 +76,24 @@ class Phaser:
 
         return (1.0 - tangent) / (1.0 + tangent)
 
-    def _update_coefficients(self, lfo_value):
-        base_frequency = (
-            self.min_frequency
-            + lfo_value
-            * (self.max_frequency - self.min_frequency)
+    def _advance_lfo_for_block(self, block_size):
+        """
+        Get one modulation value and advance the LFO by one block.
+        """
+        lfo_value = self.lfo.next_sample()
+
+        # One sample was already advanced by next_sample().
+        phase_step = (
+            2.0
+            * math.pi
+            * self.lfo.rate_hz
+            / self.sample_rate
         )
 
-        for stage, offset in zip(
-            self.stages,
-            self.stage_offsets,
-        ):
-            stage_frequency = base_frequency * float(offset)
+        self.lfo.phase += phase_step * max(0, block_size - 1)
+        self.lfo.phase %= 2.0 * math.pi
 
-            coefficient = self._frequency_to_coefficient(
-                stage_frequency
-            )
-
-            stage.set_coefficient(coefficient)
+        return lfo_value
 
     def set_rate(self, rate_hz):
         self.lfo.set_rate(rate_hz)
@@ -95,7 +103,7 @@ class Phaser:
 
     def set_feedback(self, feedback):
         self.feedback = float(
-            np.clip(feedback, -0.95, 0.95)
+            np.clip(feedback, -0.85, 0.85)
         )
 
     def set_mix(self, mix):
@@ -119,52 +127,95 @@ class Phaser:
         self.max_frequency = maximum
 
     def reset(self):
-        self.feedback_sample = 0.0
-        self.sample_counter = 0
         self.lfo.reset()
+        self.feedback_state = 0.0
 
-        for stage in self.stages:
-            stage.reset()
+        for state in self.stage_states:
+            state.fill(0.0)
 
-    def process(self, signal):
-        signal = np.asarray(
-            signal,
-            dtype=np.float32,
+    def process_inplace(self, buffer):
+        signal = np.asarray(buffer, dtype=np.float32)
+
+        if signal.size == 0:
+            return
+
+        dry = signal.copy()
+
+        lfo_value = self._advance_lfo_for_block(
+            signal.size
         )
 
-        output = np.empty_like(signal)
-        dry_mix = 1.0 - self.mix
+        base_frequency = (
+            self.min_frequency
+            + lfo_value
+            * (self.max_frequency - self.min_frequency)
+        )
 
-        for index, sample in enumerate(signal):
-            lfo_value = self.lfo.next_sample()
+        # Approximate feedback between blocks without a Python
+        # sample loop.
+        wet = signal.astype(
+            np.float64,
+            copy=True,
+        )
 
-            if (
-                self.sample_counter
-                % self.update_interval
-                == 0
-            ):
-                self._update_coefficients(lfo_value)
+        wet[0] += (
+            self.feedback
+            * self.feedback_state
+        )
 
-            wet = (
-                float(sample)
-                + self.feedback
-                * self.feedback_sample
+        for index, offset in enumerate(self.stage_offsets):
+            stage_frequency = (
+                base_frequency * float(offset)
             )
 
-            for stage in self.stages:
-                wet = stage.process_sample(wet)
-
-            self.feedback_sample = wet
-
-            output[index] = (
-                float(sample) * dry_mix
-                + wet * self.mix
+            coefficient = self._frequency_to_coefficient(
+                stage_frequency
             )
 
-            self.sample_counter += 1
+            # First-order all-pass:
+            # H(z) = (-c + z^-1) / (1 - c z^-1)
+            numerator = np.array(
+                [-coefficient, 1.0],
+                dtype=np.float64,
+            )
 
-        return np.clip(
-            output,
+            denominator = np.array(
+                [1.0, -coefficient],
+                dtype=np.float64,
+            )
+
+            wet, self.stage_states[index] = lfilter(
+                numerator,
+                denominator,
+                wet,
+                zi=self.stage_states[index],
+            )
+
+        self.feedback_state = float(wet[-1])
+
+        np.multiply(
+            dry,
+            1.0 - self.mix,
+            out=buffer,
+        )
+
+        buffer += wet.astype(
+            np.float32,
+            copy=False,
+        ) * self.mix
+
+        np.clip(
+            buffer,
             -1.0,
             1.0,
-        ).astype(np.float32)
+            out=buffer,
+        )
+
+    def process(self, signal):
+        output = np.asarray(
+            signal,
+            dtype=np.float32,
+        ).copy()
+
+        self.process_inplace(output)
+        return output

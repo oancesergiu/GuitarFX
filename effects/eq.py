@@ -71,11 +71,23 @@ class ThreeBandEQ:
         self.treble_db = float(np.clip(gain_db, -12.0, 12.0))
         self._update_filters()
 
+    def process_inplace(self, buffer):
+        processed = self.bass.process(buffer)
+        processed = self.mid.process(processed)
+        processed = self.treble.process(processed)
+
+        np.copyto(
+            buffer,
+            np.clip(processed, -1.0, 1.0),
+        )
+
+
     def process(self, signal):
-        signal = np.asarray(signal, dtype=np.float32)
+        output = np.asarray(
+            signal,
+            dtype=np.float32,
+        ).copy()
 
-        signal = self.bass.process(signal)
-        signal = self.mid.process(signal)
-        signal = self.treble.process(signal)
+        self.process_inplace(output)
 
-        return np.clip(signal, -1.0, 1.0).astype(np.float32)
+        return output
