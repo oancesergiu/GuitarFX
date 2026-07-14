@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-
+from engine.amp_factory import AmpFactory
 
 class PresetManager:
     def __init__(self, rack, effects, presets_dir="presets"):
@@ -42,6 +42,10 @@ class PresetManager:
             settings.get("overdrive", {})
         )
 
+        self._configure_amp_model(
+            settings.get("amp_model", {})
+        )
+
         self._configure_eq(
             settings.get("eq", {})
         )
@@ -56,6 +60,10 @@ class PresetManager:
 
         self._configure_delay(
             settings.get("delay", {})
+        )
+
+        self._configure_output_gain(
+           settings.get("output_gain", {})
         )
 
         print(
@@ -207,3 +215,75 @@ class PresetManager:
             delay.set_mix(
                 settings["mix"]
             )
+    def _configure_output_gain(self, settings):
+        output_gain = self.effects["output_gain"]
+
+        self._set_enabled(
+            "output_gain",
+            settings.get("enabled", True),
+        )
+
+        if "gain_db" in settings:
+            output_gain.set_gain_db(
+                settings["gain_db"]
+            )
+
+    def _configure_amp_model(self, settings):
+        amp_model = self.effects["amp_model"]
+
+        self._set_enabled(
+            "amp_model",
+            settings.get("enabled", True),
+        )
+
+        if "model" in settings:
+            AmpFactory.configure(
+                amp_model,
+                settings["model"],
+            )
+
+        if "preamp_gain" in settings:
+            amp_model.set_preamp_gain(
+                settings["preamp_gain"]
+            )
+
+        if "second_stage_gain" in settings:
+            amp_model.set_second_stage_gain(
+                settings["second_stage_gain"]
+            )
+
+        if "bass" in settings:
+            amp_model.set_bass(
+                settings["bass"]
+            )
+
+        if "middle" in settings:
+            amp_model.set_middle(
+                settings["middle"]
+            )
+
+        if "treble" in settings:
+            amp_model.set_treble(
+                settings["treble"]
+            )
+
+        if "presence" in settings:
+            amp_model.set_presence(
+                settings["presence"]
+            )
+
+        if "resonance" in settings:
+            amp_model.set_resonance(
+                settings["resonance"]
+            )
+
+        if "sag" in settings:
+            amp_model.set_sag(
+                settings["sag"]
+            )
+
+        if "master" in settings:
+            amp_model.set_master(
+                settings["master"]
+            )
+

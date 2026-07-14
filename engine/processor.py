@@ -30,6 +30,18 @@ from engine.dsp.limiter import Limiter
 from tools.benchmark import DSPBenchmark
 from effects.compressor import Compressor
 from effects.power_amp import PowerAmp
+from effects.output_gain import OutputGain
+from engine.amp_factory import AmpFactory
+
+
+amp_model = AmpFactory.create(
+    "marshall",
+    sample_rate=RATE,
+)
+
+output_gain = OutputGain(
+    gain_db=0.0,
+)
 
 power_amp = PowerAmp(
     sample_rate=RATE,
@@ -141,19 +153,21 @@ limiter = Limiter(
 rack.add(gate)
 rack.add(compressor)
 rack.add(overdrive)
+rack.add(amp_model)
 rack.add(eq)
-rack.add(power_amp)
 rack.add(auto_wah)
 rack.add(phaser)
 rack.add(chorus)
 rack.add(cabinet)
 rack.add(delay)
+rack.add(output_gain)
 rack.add(limiter)
 
 effects = {
     "gate": gate,
     "compressor": compressor,
     "overdrive": overdrive,
+    "amp_model": amp_model,
     "eq": eq,
     "power_amp": power_amp,
     "auto_wah": auto_wah,
@@ -161,6 +175,7 @@ effects = {
     "cabinet": cabinet,
     "delay": delay,
     "chorus": chorus,
+    "output_gain": output_gain,
 }
 
 presets = PresetManager(
@@ -177,9 +192,8 @@ print(
 # Change this name to select the startup preset.
 
 presets.load("brown")
-rack.enable(power_amp)
-rack.enable(phaser)
-rack.enable(auto_wah)
+rack.enable(amp_model)
+
 
 def print_benchmark():
     benchmark.report()

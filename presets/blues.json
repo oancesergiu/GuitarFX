@@ -26,6 +26,11 @@
       "enabled": true,
       "ir": "celestion.wav",
       "output_level": 0.9
+    },
+    "output_gain": {
+      "enabled": true,
+      "gain_db": -2.0
     }
+
   }
 }

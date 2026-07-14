@@ -24,8 +24,12 @@
     },
     "cabinet": {
       "enabled": true,
-      "ir": "celestion.wav",
+      "ir": "vox_rock.wav",
       "output_level": 0.9
+    },
+    "output_gain": {
+      "enabled": true,
+      "gain_db": -1.5
     }
   }
 }

@@ -7,10 +7,23 @@
     },
     "overdrive": {
       "enabled": true,
-      "gain": 3.8,
-      "drive": 0.44,
-      "level": 0.58,
+      "gain": 2.2,
+      "drive": 0.55,
+      "level": 0.60,
       "tone": 0.42
+    },
+    "amp_model": {
+      "enabled": true,
+      "model": "mesa",
+      "preamp_gain": 4.6,
+      "second_stage_gain": 2.1,
+      "bass": 0.48,
+      "middle": 0.74,
+      "treble": 0.56,
+      "presence": 0.40,
+      "resonance": 0.32,
+      "sag": 0.20,
+      "master": 0.62
     },
     "eq": {
       "enabled": true,
@@ -37,6 +50,10 @@
       "delay_ms": 280,
       "feedback": 0.20,
       "mix": 0.12
+    },
+    "output_gain": {
+      "enabled": true,
+      "gain_db": -3.0
     }
   }
 }
