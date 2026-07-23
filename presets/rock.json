@@ -2,34 +2,60 @@
   "name": "Rock",
   "effects": {
     "gate": {
-      "enabled": true
+      "enabled": true,
+      "threshold": 0.018
     },
+
+    "compressor": {
+      "enabled": false
+    },
+
     "overdrive": {
       "enabled": true,
-      "gain": 4.0,
-      "drive": 0.45,
-      "level": 0.74
+      "gain": 1.4,
+      "drive": 0.28,
+      "level": 0.82,
+      "tone": 0.45
     },
+
+    "amp_model": {
+      "enabled": true,
+      "model": "marshall",
+      "gain": 0.60
+    },
+
     "eq": {
       "enabled": true,
-      "bass_db": 2.0,
-      "mid_db": 2.0,
-      "treble_db": -1.0
+      "bass_db": 1.5,
+      "mid_db": 3.0,
+      "treble_db": 1.5
     },
-    "delay": {
-      "enabled": false,
-      "delay_ms": 280,
-      "feedback": 0.25,
-      "mix": 0.15
+
+    "auto_wah": {
+      "enabled": false
     },
+
+    "phaser": {
+      "enabled": false
+    },
+
+    "chorus": {
+      "enabled": false
+    },
+
     "cabinet": {
       "enabled": true,
-      "ir": "vox_rock.wav",
-      "output_level": 0.9
+      "ir": "Marshall_jcm800.wav",
+      "output_level": 0.88
     },
+
+    "delay": {
+      "enabled": false
+    },
+
     "output_gain": {
       "enabled": true,
-      "gain_db": -1.5
+      "gain_db": -2.0
     }
   }
 }
