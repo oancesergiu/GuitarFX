@@ -2,35 +2,59 @@
   "name": "Blues",
   "effects": {
     "gate": {
-      "enabled": true
-    },
-    "overdrive": {
       "enabled": true,
-      "gain": 2.8,
-      "drive": 0.55,
-      "level": 0.70
+      "threshold": 0.012
     },
+
+    "compressor": {
+      "enabled": false
+    },
+
+    "overdrive": {
+      "enabled": false
+    },
+
+    "amp_model": {
+      "enabled": true,
+      "model": "vox",
+      "gain": 0.55
+    },
+
     "eq": {
       "enabled": true,
-      "bass_db": 3.0,
-      "mid_db": 2.0,
-      "treble_db": -2.0
+      "bass_db": 0.5,
+      "mid_db": 2.3,
+      "treble_db": 2
     },
+
+    "auto_wah": {
+      "enabled": false
+    },
+
+    "phaser": {
+      "enabled": false
+    },
+
+    "chorus": {
+      "enabled": false
+    },
+
+    "cabinet": {
+      "enabled": true,
+      "ir": "celestion.wav",
+      "output_level": 0.85
+    },
+
     "delay": {
       "enabled": true,
       "delay_ms": 180,
       "feedback": 0.15,
       "mix": 0.10
     },
-    "cabinet": {
-      "enabled": true,
-      "ir": "celestion.wav",
-      "output_level": 0.9
-    },
+
     "output_gain": {
       "enabled": true,
       "gain_db": -2.0
     }
-
   }
 }

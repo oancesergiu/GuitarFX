@@ -2,34 +2,66 @@
   "name": "Lead",
   "effects": {
     "gate": {
+      "enabled": true,
+      "threshold": 0.020
+    },
+
+    "compressor": {
       "enabled": true
     },
+
     "overdrive": {
       "enabled": true,
-      "gain": 6.0,
-      "drive": 0.36,
-      "level": 0.76
+      "gain": 1.6,
+      "drive": 0.30,
+      "level": 0.90,
+      "tone": 0.52
     },
+
+    "amp_model": {
+      "enabled": true,
+      "model": "mesa",
+      "gain": 0.82
+    },
+
     "eq": {
       "enabled": true,
-      "bass_db": 1.0,
-      "mid_db": 4.0,
-      "treble_db": 1.0
+      "bass_db": 1.5,
+      "mid_db": 2.5,
+      "treble_db": 2.0
     },
-    "delay": {
+
+    "auto_wah": {
+      "enabled": false
+    },
+
+    "phaser": {
+      "enabled": false
+    },
+
+    "chorus": {
       "enabled": true,
-      "delay_ms": 350,
-      "feedback": 0.35,
-      "mix": 0.30
+      "depth": 0.20,
+      "rate": 0.50,
+      "mix": 0.15
     },
+
     "cabinet": {
       "enabled": true,
       "ir": "mesa_metal.wav",
-      "output_level": 0.9
+      "output_level": 0.90
     },
+
+    "delay": {
+      "enabled": true,
+      "delay_ms": 320,
+      "feedback": 0.30,
+      "mix": 0.22
+    },
+
     "output_gain": {
       "enabled": true,
-      "gain_db": -2.0
+      "gain_db": -1.5
     }
   }
 }

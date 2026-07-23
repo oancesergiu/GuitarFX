@@ -38,6 +38,10 @@ class PresetManager:
             settings.get("gate", {})
         )
 
+        self._configure_compressor(
+            settings.get("compressor", {})
+        )
+
         self._configure_overdrive(
             settings.get("overdrive", {})
         )
@@ -52,6 +56,14 @@ class PresetManager:
 
         self._configure_auto_wah(
             settings.get("auto_wah", {})
+        )
+
+        self._configure_phaser(
+            settings.get("phaser", {})
+        )
+
+        self._configure_chorus(
+            settings.get("chorus", {})
         )
 
         self._configure_cabinet(
@@ -92,6 +104,43 @@ class PresetManager:
                 settings["threshold"]
             )
 
+    def _configure_compressor(self, settings):
+        compressor = self.effects["compressor"]
+
+        self._set_enabled(
+            "compressor",
+            settings.get("enabled", False),
+        )
+
+        if "threshold_db" in settings:
+            compressor.set_threshold(
+                settings["threshold_db"]
+            )
+
+        if "ratio" in settings:
+            compressor.set_ratio(
+                settings["ratio"]
+            )
+
+        if "attack_ms" in settings:
+            compressor.set_attack(
+                settings["attack_ms"]
+            )
+
+        if "release_ms" in settings:
+            compressor.set_release(
+                settings["release_ms"]
+            )
+
+        if "makeup_db" in settings:
+            compressor.set_makeup(
+                settings["makeup_db"]
+            )
+
+        if "mix" in settings:
+            compressor.set_mix(
+                settings["mix"]
+            )
     def _configure_overdrive(self, settings):
         overdrive = self.effects["overdrive"]
 
@@ -175,6 +224,42 @@ class PresetManager:
                 settings["resonance_q"]
             )
 
+    def _configure_phaser(self, settings):
+        phaser = self.effects["phaser"]
+
+        self._set_enabled(
+            "phaser",
+            settings.get("enabled", False),
+        )
+
+    def _configure_chorus(self, settings):
+        chorus = self.effects["chorus"]
+
+        self._set_enabled(
+            "chorus",
+            settings.get("enabled", False),
+        )
+
+        if "rate_hz" in settings:
+            chorus.set_rate(
+                settings["rate_hz"]
+            )
+
+        if "depth_ms" in settings:
+            chorus.set_depth(
+                settings["depth_ms"]
+            )
+
+        if "base_delay_ms" in settings:
+            chorus.set_base_delay(
+                settings["base_delay_ms"]
+            )
+
+        if "mix" in settings:
+            chorus.set_mix(
+                settings["mix"]
+            )
+
     def _configure_cabinet(self, settings):
         cabinet = self.effects["cabinet"]
 
@@ -240,6 +325,11 @@ class PresetManager:
             AmpFactory.configure(
                 amp_model,
                 settings["model"],
+            )
+
+        if "gain" in settings:
+            amp_model.set_gain(
+                settings["gain"]
             )
 
         if "preamp_gain" in settings:

@@ -3,57 +3,62 @@
   "effects": {
     "gate": {
       "enabled": true,
-      "threshold": 0.006
+      "threshold": 0.022
     },
+
+    "compressor": {
+      "enabled": false
+    },
+
     "overdrive": {
       "enabled": true,
-      "gain": 2.2,
-      "drive": 0.55,
-      "level": 0.60,
-      "tone": 0.42
+      "gain": 1.8,
+      "drive": 0.35,
+      "level": 0.90,
+      "tone": 0.50
     },
+
     "amp_model": {
       "enabled": true,
-      "model": "mesa",
-      "preamp_gain": 4.6,
-      "second_stage_gain": 2.1,
-      "bass": 0.48,
-      "middle": 0.74,
-      "treble": 0.56,
-      "presence": 0.40,
-      "resonance": 0.32,
-      "sag": 0.20,
-      "master": 0.62
+      "model": "marshall",
+      "gain": 0.76
     },
+
     "eq": {
       "enabled": true,
       "bass_db": 1.0,
-      "mid_db": 2.5,
-      "treble_db": -1.5
+      "mid_db": 4.0,
+      "treble_db": 2.0
     },
+
     "auto_wah": {
       "enabled": false
     },
+
     "phaser": {
-      "enabled": false
+      "enabled": true
     },
+
     "chorus": {
       "enabled": false
     },
+
     "cabinet": {
       "enabled": true,
-      "ir": "5150_metal.wav",
-      "output_level": 0.65
+      "ir": "Marshall_jcm800.wav",
+      "output_level": 0.90
     },
+
     "delay": {
       "enabled": true,
-      "delay_ms": 280,
-      "feedback": 0.20,
+      "delay_ms": 250,
+      "feedback": 0.18,
       "mix": 0.12
     },
+
     "output_gain": {
       "enabled": true,
-      "gain_db": -3.0
+      "gain_db": -1.5
     }
   }
 }

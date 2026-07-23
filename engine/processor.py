@@ -2,17 +2,8 @@ import numpy as np
 
 from config import (
     RATE,
-    NOISE_GATE_THRESHOLD,
-    DISTORTION_GAIN,
-    DISTORTION_DRIVE,
-    DISTORTION_LEVEL,
-    DELAY_MS,
-    DELAY_FEEDBACK,
-    DELAY_MIX,
-    BASS_DB,
-    MID_DB,
-    TREBLE_DB,
     BLOCK_FRAMES,
+    INPUT_GAIN_DB,
 )
 
 from engine.effect_rack import EffectRack
@@ -32,11 +23,15 @@ from effects.compressor import Compressor
 from effects.power_amp import PowerAmp
 from effects.output_gain import OutputGain
 from engine.amp_factory import AmpFactory
-
+from effects.input_gain import InputGain
 
 amp_model = AmpFactory.create(
     "marshall",
     sample_rate=RATE,
+)
+
+input_gain = InputGain(
+    gain_db=INPUT_GAIN_DB,
 )
 
 output_gain = OutputGain(
@@ -54,12 +49,13 @@ power_amp = PowerAmp(
 
 compressor = Compressor(
     sample_rate=RATE,
-    threshold_db=-30.0,
-    ratio=10.0,
-    attack_ms=2.0,
-    release_ms=250.0,
-    makeup_db=8.0,
+    threshold_db=-18.0,
+    ratio=4.0,
+    attack_ms=5.0,
+    release_ms=120.0,
+    makeup_db=3.0,
     mix=1.0,
+    block_size=BLOCK_FRAMES,
 )
 
 benchmark = DSPBenchmark(
@@ -73,22 +69,29 @@ rack = EffectRack(
 
 
 gate = NoiseGate(
-    threshold=NOISE_GATE_THRESHOLD,
+    threshold=0.008,
 )
 
 overdrive = Overdrive(
-    gain=DISTORTION_GAIN,
-    drive=DISTORTION_DRIVE,
-    level=DISTORTION_LEVEL,
+    gain=3.5,
+    drive=0.45,
+    level=0.75,
     tone=0.55,
     sample_rate=RATE,
 )
 
 eq = ThreeBandEQ(
     sample_rate=RATE,
-    bass_db=BASS_DB,
-    mid_db=MID_DB,
-    treble_db=TREBLE_DB,
+    bass_db=0.0,
+    mid_db=0.0,
+    treble_db=0.0,
+)
+
+delay = Delay(
+    sample_rate=RATE,
+    delay_ms=350.0,
+    feedback=0.35,
+    mix=0.30,
 )
 
 auto_wah = AutoWah(
@@ -107,12 +110,6 @@ cabinet = Cabinet(
     max_ir_samples=2048,
 )
 
-delay = Delay(
-    sample_rate=RATE,
-    delay_ms=DELAY_MS,
-    feedback=DELAY_FEEDBACK,
-    mix=DELAY_MIX,
-)
 
 preamp = Preamp(
     sample_rate=RATE,
@@ -140,6 +137,7 @@ chorus = Chorus(
     base_delay_ms=18.0,
     depth_ms=4.0,
     mix=0.35,
+    block_size=BLOCK_FRAMES,
 )
 
 limiter = Limiter(
@@ -150,6 +148,7 @@ limiter = Limiter(
     block_size=BLOCK_FRAMES,
 )
 
+rack.add(input_gain)
 rack.add(gate)
 rack.add(compressor)
 rack.add(overdrive)
@@ -191,7 +190,7 @@ print(
 
 # Change this name to select the startup preset.
 
-presets.load("brown")
+presets.load("blues")
 rack.enable(amp_model)
 
 

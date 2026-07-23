@@ -2,34 +2,60 @@
   "name": "Metal",
   "effects": {
     "gate": {
-      "enabled": true
+      "enabled": true,
+      "threshold": 0.035
     },
+
+    "compressor": {
+      "enabled": false
+    },
+
     "overdrive": {
       "enabled": true,
-      "gain": 8.0,
-      "drive": 0.30,
-      "level": 0.78
+      "gain": 1.0,
+      "drive": 0.18,
+      "level": 1.00,
+      "tone": 0.60
     },
+
+    "amp_model": {
+      "enabled": true,
+      "model": "5150",
+      "gain": 0.88
+    },
+
     "eq": {
       "enabled": true,
-      "bass_db": 5.0,
-      "mid_db": -4.0,
+      "bass_db": 3.0,
+      "mid_db": -2.0,
       "treble_db": 3.0
     },
-    "delay": {
-      "enabled": false,
-      "delay_ms": 200,
-      "feedback": 0.20,
-      "mix": 0.10
+
+    "auto_wah": {
+      "enabled": false
     },
+
+    "phaser": {
+      "enabled": false
+    },
+
+    "chorus": {
+      "enabled": false
+    },
+
     "cabinet": {
       "enabled": true,
-      "ir": "mesa_metal.wav",
-      "output_level": 0.9
+      "ir": "5150_metal.wav",
+      "output_level": 0.90
     },
+
+    "delay": {
+      "enabled": false
+    },
+
     "output_gain": {
       "enabled": true,
-      "gain_db": -5.0
+      "gain_db": -2.0
     }
   }
 }

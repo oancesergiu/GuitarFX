@@ -1,30 +1,21 @@
-# Audio settings
+# Audio
 RATE = 44100
 CHANNELS = 2
 BLOCK_FRAMES = 256
-DEVICE = "hw:3,0"
 
-# ALSA buffer settings
+# ALSA
 BUFFER_SIZE = 1024
 PERIOD_SIZE = 256
 
-# Noise gate
-NOISE_GATE_THRESHOLD = 0.008
+# Hardware
+DEVICE = "hw:3,0"
 
-# Gain
-INPUT_GAIN = 1.0
+# Input calibration
 
-# Distortion
-DISTORTION_GAIN = 3.5
-DISTORTION_DRIVE = 0.45
-DISTORTION_LEVEL = 0.75
+PASSIVE_INPUT_GAIN_DB = 0.0
+ACTIVE_INPUT_GAIN_DB = -6.0
 
-# Delay
-DELAY_MS = 350
-DELAY_FEEDBACK = 0.35
-DELAY_MIX = 0.30
+INPUT_GAIN_DB = PASSIVE_INPUT_GAIN_DB
 
-# Equalizer
-BASS_DB = 0.0
-MID_DB = 0.0
-TREBLE_DB = 0.0
+# Debug
+PRINT_BENCHMARK = True
